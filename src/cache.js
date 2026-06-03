@@ -9,6 +9,10 @@ export class Cache {
   get(key) {
     const inMemory = this.memory.get(key);
     if (inMemory) {
+      if (inMemory.expiresAt && nowMs() > inMemory.expiresAt) {
+        this.memory.delete(key);
+        return undefined;
+      }
       return inMemory.value;
     }
 
@@ -24,6 +28,10 @@ export class Cache {
     try {
       const parsed = JSON.parse(raw);
       if (!parsed) {
+        return undefined;
+      }
+      if (parsed.expiresAt && nowMs() > parsed.expiresAt) {
+        this.storage.removeItem(key);
         return undefined;
       }
       return parsed.value;
